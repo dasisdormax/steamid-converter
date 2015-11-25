@@ -8,6 +8,8 @@ Parse a SteamID string by using `id = new SteamID(std::string steamidstr [, Stea
 
 Export your id as string using `id.asString(SteamIDFormat format)`
 
+More info will be added when implemented.
+
 # The command line program
 
 TO BE DONE

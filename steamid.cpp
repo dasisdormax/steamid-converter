@@ -1,21 +1,21 @@
 #include "steamid.h"
 
-SteamUniverse SteamID::getUniverse()
+uint16_t SteamID::getUniverse()
 {
   return id64 >> 56;
 }
 
-SteamAccountType SteamID::getAccountType()
+uint16_t SteamID::getAccountType()
 {
   return (id64 >> 52) & 0x0F;
 }
 
-unsigned int SteamID::getInstance()
+uint32_t SteamID::getInstance()
 {
   return (id64 >> 32) & 0x000FFFFF;
 }
 
-unsigned int SteamID::getAccountID()
+uint32_t SteamID::getAccountID()
 {
   return id64 & 0xFFFFFFFF;
 }
@@ -26,48 +26,48 @@ bool SteamID::validate()
   return true;
 }
 
-SteamID *SteamID::setUniverse(SteamUniverse universe)
+SteamID *SteamID::setUniverse(uint16_t universe)
 {
-  SteamUniverse filteredUniverse = universe & 0xFF;
-  id64 = id64 - getUniverse() + filteredUniverse;
+  uint64_t fu = ((uint64_t) universe) << 56;
+  id64 = (id64 & 0x00FFFFFFFFFFFFFF) | fu;
   return this;
 }
 
-SteamID *SteamID::setAccountType(SteamAccountType type)
+SteamID *SteamID::setAccountType(uint16_t type)
 {
-  SteamAccountType filteredType = type & 0x0F;
-  id64 = id64 - getAccountType() + filteredType;
+  uint64_t ft = ((uint64_t)type & 0x0F) << 52;
+  id64 = (id64 & 0xFF0FFFFFFFFFFFFF) | ft;
   return this;
 }
 
-SteamID *SteamID::setInstance(unsigned int instance)
+SteamID *SteamID::setInstance(uint32_t instance)
 {
-  unsigned int filteredInstance = instance & 0x000FFFFF;
-  id64 = id64 - getInstance() + filteredInstance;
+  uint64_t fi = ((uint64_t)instance & 0x000FFFFF) << 32;
+  id64 = (id64 & 0xFFF00000FFFFFFFF) | fi;
   return this;
 }
 
-SteamID *SteamID::setAccountID(unsigned int accountID)
+SteamID *SteamID::setAccountID(uint32_t accountID)
 {
-  id64 = id64 - getAccountID() + accountID;
+  id64 = (id64 & 0xFFFFFFFF00000000) | accountID;
   return this;
 }
 
-void SteamID::parseString(std::string input, SteamIDFormat format)
+void SteamID::parseString(std::string input, SteamID::Format format)
 {
-  if (format == SteamIDFormat::AutoDetect)
+  if (format == SteamID::Format::AutoDetect)
   {
     // Try detecting the format based on the first character
-    switch (char firstchar = input.first()) 
+    switch (input[0]) 
     {
       case '[':
-        format = SteamIDFormat::StringModern;
+        format = SteamID::Format::Modern;
         break;
       case 'S':
-        format = SteamIDFormat::StringLegacy;
+        format = SteamID::Format::Legacy;
         break;
       default:
-        format = SteamIDFormat::Int64;
+        format = SteamID::Format::Number;
         break;
     }
   }
@@ -75,18 +75,19 @@ void SteamID::parseString(std::string input, SteamIDFormat format)
   this->id64 = 0;
   switch (format)
   {
-    case SteamIDFormat::StringModern:
+    case SteamID::Format::Modern:
       break;
-    case SteamIDFormat::StringLegacy:
+    case SteamID::Format::Legacy:
       break;
-    case SteamIDFormat::Int64:
+    case SteamID::Format::Number:
       break;
     default:
+      break;
       // ERROR ?????
   }
 }
 
-SteamID::SteamID(std::string input, SteamIDFormat format)
+SteamID::SteamID(std::string input, SteamID::Format format)
 {
   parseString(input, format);
 }
